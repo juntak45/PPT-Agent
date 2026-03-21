@@ -1,0 +1,197 @@
+{
+  "meta": {
+    "title": "AI 기반 고객 서비스 혁신 제안서",
+    "subtitle": "AICC 도입 제안",
+    "selectedThemeId": "corporate-blue"
+  },
+  "confirmedSlideCount": 5,
+  "selectedDirection": {
+    "id": "dir-auto",
+    "approach": "문제-해결 내러티브",
+    "narrative": "현황 분석 → 솔루션 제안 → 기대 효과",
+    "tone": "consulting",
+    "recommendedSlideCounts": [5, 7, 10]
+  },
+  "selectedStructure": {
+    "id": "struct-auto",
+    "title": "AICC 도입 제안",
+    "sections": [
+      { "sectionTitle": "표지", "slideCount": 1, "purpose": "프레젠테이션 시작", "keyPoints": ["제목", "회사명"] },
+      { "sectionTitle": "현황", "slideCount": 2, "purpose": "현재 문제 분석", "keyPoints": ["고객 불만", "비용 증가"] },
+      { "sectionTitle": "솔루션", "slideCount": 1, "purpose": "AICC 솔루션 제안", "keyPoints": ["AI 챗봇", "음성 인식"] },
+      { "sectionTitle": "기대효과", "slideCount": 1, "purpose": "도입 효과 제시", "keyPoints": ["비용 절감", "만족도 향상"] }
+    ],
+    "totalSlides": 5
+  },
+  "contentSpec": {
+    "title": "AI 기반 고객 서비스 혁신 제안서",
+    "subtitle": "AICC 도입 제안",
+    "totalSlides": 5,
+    "narrativeArc": "현황 분석 → 솔루션 제안 → 기대 효과",
+    "targetAudience": "경영진",
+    "presentationGoal": "AICC 도입 승인",
+    "slideSpecs": [
+      {
+        "slideNumber": 1,
+        "sectionName": "표지",
+        "purpose": "프레젠테이션 시작",
+        "keyMessage": "AI 기반 고객 서비스 혁신",
+        "requiredElements": ["제목", "부제목", "회사 로고"],
+        "transitionNote": "현황 분석으로 연결"
+      },
+      {
+        "slideNumber": 2,
+        "sectionName": "현황 분석",
+        "purpose": "현재 고객 서비스의 문제점 제시",
+        "keyMessage": "고객 불만 접수 건수 전년 대비 35% 증가",
+        "requiredElements": ["불만 건수 통계", "주요 불만 유형", "비용 영향"],
+        "transitionNote": "구체적 원인 분석으로",
+        "suggestedVisual": "차트"
+      },
+      {
+        "slideNumber": 3,
+        "sectionName": "원인 분석",
+        "purpose": "문제의 근본 원인 분석",
+        "keyMessage": "수동 프로세스와 인력 부족이 핵심 원인",
+        "requiredElements": ["원인 1: 수동 프로세스", "원인 2: 인력 부족", "원인 3: 시스템 노후화", "AS-IS vs TO-BE 비교"],
+        "transitionNote": "솔루션으로 연결"
+      },
+      {
+        "slideNumber": 4,
+        "sectionName": "솔루션 제안",
+        "purpose": "AICC 솔루션 소개",
+        "keyMessage": "AI 챗봇 + 음성 인식으로 70% 자동화",
+        "requiredElements": ["AI 챗봇 기능", "음성 인식 기능", "자동화율 70%", "아키텍처 개요"],
+        "transitionNote": "기대 효과로 연결"
+      },
+      {
+        "slideNumber": 5,
+        "sectionName": "기대효과",
+        "purpose": "도입 효과 정량 제시",
+        "keyMessage": "연간 15억원 비용 절감, 고객 만족도 40% 향상",
+        "requiredElements": ["비용 절감 15억원", "만족도 향상 40%", "ROI 분석"],
+        "transitionNote": "마무리"
+      }
+    ]
+  },
+  "deckDesignPlan": {
+    "tone": "consulting",
+    "toneDescription": "전문적이고 신뢰감 있는 톤",
+    "visualMotif": "data-driven",
+    "motifDescription": "데이터 중심 시각화",
+    "colorStrategy": "파란색 계열 메인, 주황색 악센트",
+    "typographyStrategy": "제목 굵게, 본문 가독성 우선",
+    "densityStrategy": [
+      { "role": "cover", "density": "low", "guideline": "제목만" },
+      { "role": "detailed-explanation", "density": "medium", "guideline": "3-5 항목" }
+    ],
+    "repetitionRules": [],
+    "variationRules": [],
+    "emphasisRules": [],
+    "roleAssignments": [
+      { "slideNumber": 1, "role": "cover", "sectionName": "표지", "preferredLayout": "title-slide", "preferredComposition": "default", "density": "low", "mustHaveElements": ["제목", "부제목"] },
+      { "slideNumber": 2, "role": "data-visualization", "sectionName": "현황 분석", "preferredLayout": "chart", "preferredComposition": "center-highlight", "density": "medium", "mustHaveElements": ["불만 건수 통계"] },
+      { "slideNumber": 3, "role": "comparison", "sectionName": "원인 분석", "preferredLayout": "two-column", "preferredComposition": "comparison-table", "density": "medium", "mustHaveElements": ["AS-IS", "TO-BE"] },
+      { "slideNumber": 4, "role": "architecture-blueprint", "sectionName": "솔루션 제안", "preferredLayout": "diagram", "preferredComposition": "hub-spoke", "density": "medium", "mustHaveElements": ["AI 챗봇", "음성 인식"] },
+      { "slideNumber": 5, "role": "conclusion", "sectionName": "기대효과", "preferredLayout": "conclusion", "preferredComposition": "grid-cards", "density": "low", "mustHaveElements": ["비용 절감", "만족도 향상"] }
+    ]
+  },
+  "slides": [
+    {
+      "slideNumber": 1,
+      "sectionName": "표지",
+      "strategy": "generate",
+      "status": "approved",
+      "roleAssignment": { "slideNumber": 1, "role": "cover", "sectionName": "표지", "preferredLayout": "title-slide", "preferredComposition": "default", "density": "low", "mustHaveElements": ["제목", "부제목"] },
+      "approved": {
+        "slideNumber": 1,
+        "title": "AI 기반 고객 서비스 혁신",
+        "subTitle": "AICC 도입 제안서",
+        "layout": "title-slide",
+        "contentType": "paragraph",
+        "bodyText": "고객 만족과 운영 효율을 동시에 달성하는 AI 솔루션",
+        "speakerNotes": "프레젠테이션 시작",
+        "composition": "default"
+      }
+    },
+    {
+      "slideNumber": 2,
+      "sectionName": "현황 분석",
+      "strategy": "generate",
+      "status": "approved",
+      "roleAssignment": { "slideNumber": 2, "role": "data-visualization", "sectionName": "현황 분석", "preferredLayout": "chart", "preferredComposition": "center-highlight", "density": "medium", "mustHaveElements": ["불만 건수 통계"] },
+      "approved": {
+        "slideNumber": 2,
+        "title": "고객 불만 현황",
+        "subTitle": "전년 대비 35% 증가",
+        "keyMessage": "고객 불만 접수 건수 전년 대비 35% 증가",
+        "layout": "chart",
+        "contentType": "chart",
+        "chartType": "bar",
+        "chartData": { "labels": ["2023", "2024", "2025"], "values": [1200, 1620, 2100] },
+        "bulletPoints": ["불만 건수 통계: 2025년 2,100건 접수", "주요 불만 유형: 응답 지연 42%, 정확도 부족 31%", "비용 영향: 인건비 연간 12억원 지출"],
+        "iconHints": ["📊", "😤", "💰"],
+        "speakerNotes": "고객 불만 증가 추세 설명",
+        "composition": "center-highlight"
+      }
+    },
+    {
+      "slideNumber": 3,
+      "sectionName": "원인 분석",
+      "strategy": "generate",
+      "status": "approved",
+      "roleAssignment": { "slideNumber": 3, "role": "comparison", "sectionName": "원인 분석", "preferredLayout": "two-column", "preferredComposition": "comparison-table", "density": "medium", "mustHaveElements": ["AS-IS", "TO-BE"] },
+      "approved": {
+        "slideNumber": 3,
+        "title": "AS-IS vs TO-BE",
+        "subTitle": "수동 프로세스에서 AI 자동화로",
+        "keyMessage": "수동 프로세스와 인력 부족이 핵심 원인",
+        "layout": "two-column",
+        "contentType": "bullets",
+        "bulletPoints": ["수동 프로세스: 모든 문의를 상담원이 직접 처리", "인력 부족: 피크 시간대 평균 대기 15분", "시스템 노후화: 10년 이상 된 콜센터 시스템", "AS-IS vs TO-BE 비교: 현재 수동 → 목표 70% 자동화"],
+        "iconHints": ["⚙️", "👥", "🖥️", "🔄"],
+        "speakerNotes": "핵심 원인 분석",
+        "composition": "comparison-table"
+      }
+    },
+    {
+      "slideNumber": 4,
+      "sectionName": "솔루션 제안",
+      "strategy": "generate",
+      "status": "approved",
+      "roleAssignment": { "slideNumber": 4, "role": "architecture-blueprint", "sectionName": "솔루션 제안", "preferredLayout": "diagram", "preferredComposition": "hub-spoke", "density": "medium", "mustHaveElements": ["AI 챗봇", "음성 인식"] },
+      "approved": {
+        "slideNumber": 4,
+        "title": "AICC 아키텍처",
+        "subTitle": "AI 챗봇 + 음성 인식 통합 플랫폼",
+        "keyMessage": "AI 챗봇 + 음성 인식으로 70% 자동화",
+        "layout": "diagram",
+        "contentType": "diagram",
+        "bulletPoints": ["AI 챗봇 기능: 24시간 자동 응답, FAQ 자동 해결", "음성 인식 기능: STT/TTS 실시간 처리", "자동화율 70%: 단순 문의 완전 자동화", "아키텍처 개요: 클라우드 기반 마이크로서비스"],
+        "iconHints": ["🤖", "🎙️", "⚡", "☁️"],
+        "mermaidCode": "flowchart LR\n  A[고객] --> B[AI 챗봇]\n  A --> C[음성 인식]\n  B --> D[자동 해결]\n  C --> D\n  D --> E[상담원 에스컬레이션]",
+        "speakerNotes": "AICC 아키텍처 설명",
+        "composition": "hub-spoke"
+      }
+    },
+    {
+      "slideNumber": 5,
+      "sectionName": "기대효과",
+      "strategy": "generate",
+      "status": "approved",
+      "roleAssignment": { "slideNumber": 5, "role": "conclusion", "sectionName": "기대효과", "preferredLayout": "conclusion", "preferredComposition": "grid-cards", "density": "low", "mustHaveElements": ["비용 절감", "만족도 향상"] },
+      "approved": {
+        "slideNumber": 5,
+        "title": "기대효과 요약",
+        "subTitle": "정량적 성과 목표",
+        "keyMessage": "연간 15억원 비용 절감, 고객 만족도 40% 향상",
+        "layout": "conclusion",
+        "contentType": "bullets",
+        "bulletPoints": ["비용 절감 15억원: 인건비 8억 + 운영비 7억 절감", "만족도 향상 40%: NPS 점수 30 → 42 목표", "ROI 분석: 투자비 5억, 1차년도 회수"],
+        "iconHints": ["💰", "😊", "📈"],
+        "speakerNotes": "기대효과 종합 정리",
+        "composition": "grid-cards"
+      }
+    }
+  ]
+}
