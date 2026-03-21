@@ -3,6 +3,7 @@ import {
   SlideContent,
   ContentSpecification,
   DeckDesignPlan,
+  SlideSpec,
 } from '../types';
 import { validateSlideAgainstRole } from '../pipeline/validator';
 import {
@@ -17,7 +18,7 @@ import {
 
 // ─── 1.1 Completeness Score ───
 
-function collectSlideText(slide: SlideContent): string {
+export function collectSlideText(slide: SlideContent): string {
   const parts: string[] = [];
   if (slide.title) parts.push(slide.title);
   if (slide.subTitle) parts.push(slide.subTitle);
@@ -29,51 +30,64 @@ function collectSlideText(slide: SlideContent): string {
   return parts.join(' ').toLowerCase();
 }
 
-function fuzzyMatch(needle: string, haystack: string): boolean {
+export function fuzzyMatch(needle: string, haystack: string): boolean {
   const normalized = needle.toLowerCase().trim();
-  // Exact substring match
   if (haystack.includes(normalized)) return true;
-  // Check if at least 60% of words match
   const words = normalized.split(/\s+/).filter((w) => w.length > 1);
   if (words.length === 0) return false;
   const matched = words.filter((w) => haystack.includes(w)).length;
   return matched / words.length >= 0.6;
 }
 
+/** Per-slide completeness check — used by retry loop and overall scorer */
+export function scoreSlideCompleteness(
+  spec: SlideSpec,
+  slide: SlideContent,
+): { covered: string[]; missing: string[]; score: number } {
+  const text = collectSlideText(slide);
+  const covered: string[] = [];
+  const missing: string[] = [];
+  for (const el of spec.requiredElements) {
+    if (fuzzyMatch(el, text)) covered.push(el);
+    else missing.push(el);
+  }
+  return {
+    covered,
+    missing,
+    score: spec.requiredElements.length > 0 ? covered.length / spec.requiredElements.length : 1.0,
+  };
+}
+
 export function scoreCompleteness(
   contentSpec: ContentSpecification,
   slides: SlideContent[],
 ): CompletenessScore {
-  const allRequired: { slideNumber: number; element: string }[] = [];
+  const allMissing: string[] = [];
+  let totalRequired = 0;
+  let totalCovered = 0;
+
   for (const spec of contentSpec.slideSpecs) {
-    for (const el of spec.requiredElements) {
-      allRequired.push({ slideNumber: spec.slideNumber, element: el });
-    }
-  }
-
-  const missing: string[] = [];
-  let covered = 0;
-
-  for (const { slideNumber, element } of allRequired) {
-    const slide = slides.find((s) => s.slideNumber === slideNumber);
+    const slide = slides.find((s) => s.slideNumber === spec.slideNumber);
     if (!slide) {
-      missing.push(`슬라이드 ${slideNumber} 누락: ${element}`);
+      for (const el of spec.requiredElements) {
+        allMissing.push(`슬라이드 ${spec.slideNumber} 누락: ${el}`);
+      }
+      totalRequired += spec.requiredElements.length;
       continue;
     }
-    const text = collectSlideText(slide);
-    if (fuzzyMatch(element, text)) {
-      covered++;
-    } else {
-      missing.push(`슬라이드 ${slideNumber}: "${element}" 미반영`);
+    const result = scoreSlideCompleteness(spec, slide);
+    totalRequired += spec.requiredElements.length;
+    totalCovered += result.covered.length;
+    for (const m of result.missing) {
+      allMissing.push(`슬라이드 ${spec.slideNumber}: "${m}" 미반영`);
     }
   }
 
-  const total = allRequired.length;
   return {
-    totalRequiredElements: total,
-    coveredElements: covered,
-    missingElements: missing,
-    score: total > 0 ? covered / total : 1.0,
+    totalRequiredElements: totalRequired,
+    coveredElements: totalCovered,
+    missingElements: allMissing,
+    score: totalRequired > 0 ? totalCovered / totalRequired : 1.0,
   };
 }
 

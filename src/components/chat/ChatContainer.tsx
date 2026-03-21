@@ -7,6 +7,8 @@ import { usePipeline } from '@/hooks/usePipeline';
 import { extractStructuredData } from '@/lib/pipeline/parser';
 import { findNextSlideNeedingExpression, findNextSlideNeedingRealization } from '@/lib/pipeline/slideProgress';
 import { getExpressionRecommendations, getInformationStructure, getCommunicativeGoal } from '@/lib/expression/recommender';
+import { scoreSlideCompleteness } from '@/lib/benchmark/scorer';
+import { postProcessSlide, printCorrectionLogs } from '@/lib/benchmark/postProcessor';
 import { DEFAULT_PROVIDER } from '@/lib/constants';
 import StepIndicator from '@/components/steps/StepIndicator';
 import LlmProviderSelect from '@/components/settings/LlmProviderSelect';
@@ -134,6 +136,7 @@ export default function ChatContainer() {
   const [deckDesignPlanReady, setDeckDesignPlanReady] = useState(false);
   const [autoplanReady, setAutoplanReady] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
+  const retryCountRef = useRef<Record<number, number>>({});
 
   const [referenceCount, setReferenceCount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -244,14 +247,45 @@ export default function ChatContainer() {
           setMobileTab('preview');
           break;
         case 'slide_candidates': {
-          // Step 5: auto-confirm single realized slide and chain to next
+          // Step 5: post-process → coverage check → retry loop → confirm → chain
           if (currentStep === 5) {
             const sc = structured.data as { slideNumber: number; candidates: SlideCandidate[] };
-            if (sc.candidates.length === 1) {
-              pipeline.confirmSlide(sc.candidates[0].slide);
+            if (sc.candidates.length >= 1) {
+              let slide = sc.candidates[0].slide;
+              const slideNum = slide.slideNumber;
+
+              // Post-process: auto-correct role violations
+              const spec = pipelineState.contentSpec?.slideSpecs.find((s) => s.slideNumber === slideNum);
+              const assignment = pipelineState.deckDesignPlan?.roleAssignments.find((ra) => ra.slideNumber === slideNum);
+              if (spec && assignment) {
+                const { corrected, logs } = postProcessSlide(slide, assignment, spec);
+                slide = corrected;
+                printCorrectionLogs(logs);
+
+                // Coverage check
+                const coverage = scoreSlideCompleteness(spec, slide);
+                const retries = retryCountRef.current[slideNum] || 0;
+
+                if (coverage.score < 0.9 && retries < 2) {
+                  retryCountRef.current[slideNum] = retries + 1;
+                  setProcessingStatus(`슬라이드 ${slideNum}번 커버리지 ${(coverage.score * 100).toFixed(0)}% — 누락 요소 보완 재시도 (${retries + 1}/2)...`);
+                  const missingList = coverage.missing.map((m) => `- "${m}"`).join('\n');
+                  const retryMsg = `슬라이드 ${slideNum}번에서 다음 필수 요소가 누락되었습니다:\n${missingList}\n\n기존 슬라이드 내용은 유지하되, 위 요소를 반드시 bulletPoints 또는 bodyText에 추가해서 다시 완성해주세요.`;
+                  const retryText = await sendMessage(retryMsg, 5, pipelineState);
+                  await processResponse(retryText, 5, pipelineState, false);
+                  return;
+                }
+
+                if (coverage.score < 0.9) {
+                  console.warn(`[경고] 슬라이드 ${slideNum} 커버리지 ${(coverage.score * 100).toFixed(0)}% — 2회 재시도 후에도 미달. 현재 결과로 확정.`);
+                }
+              }
+
+              // Confirm and chain to next
+              pipeline.confirmSlide(slide);
               const updatedState = {
                 ...pipelineState,
-                completedSlides: [...pipelineState.completedSlides.filter((s) => s.slideNumber !== sc.candidates[0].slide.slideNumber), sc.candidates[0].slide],
+                completedSlides: [...pipelineState.completedSlides.filter((s) => s.slideNumber !== slideNum), slide],
               };
               const nextSlide = findNextSlideNeedingRealization(updatedState);
               if (nextSlide) {

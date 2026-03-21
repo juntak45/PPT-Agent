@@ -389,6 +389,20 @@ title-slide, title-content, two-column, image-text, chart, diagram, section-divi
         }
       }
 
+      // Build required elements checklist
+      const requiredChecklist = spec?.requiredElements.map((el) => `- [ ] ${el}`).join('\n') || '';
+
+      // Build role-specific required fields
+      const roleRequiredFields: Record<string, string> = {
+        'data-visualization': '## role 필수 필드 (data-visualization)\n- chartData 필드를 반드시 포함하세요 (labels, values, seriesName)\n- chartType을 반드시 지정하세요 (bar / pie / line)\n- 이 필드가 없으면 검증 실패합니다',
+        'architecture-blueprint': '## role 필수 필드 (architecture-blueprint)\n- mermaidCode 필드를 반드시 포함하세요 (flowchart 또는 graph 형식)\n- 또는 bulletPoints에 구조화된 아키텍처 요소를 포함하세요',
+        'key-message': '## role 필수 필드 (key-message)\n- keyMessage 필드를 반드시 포함하세요\n- bulletPoints는 최대 3개까지만',
+        'comparison': '## role 필수 필드 (comparison)\n- composition을 반드시 "comparison-table" 또는 "side-by-side"로 설정하세요\n- layout은 "two-column"을 사용하세요',
+        'conclusion': '## role 필수 필드 (conclusion)\n- bulletPoints는 최대 3개까지만\n- keyMessage로 마무리 메시지를 포함하세요',
+        'cover': '## role 필수 필드 (cover)\n- bulletPoints는 최대 3개까지만\n- layout은 "title-slide"을 사용하세요',
+      };
+      const roleRequired = assignment ? (roleRequiredFields[assignment.role] || '') : '';
+
       return `${BASE_INSTRUCTION}
 ${contextBlock}${refBlock}
 
@@ -396,16 +410,21 @@ ${contextBlock}${refBlock}
 - 섹션: ${spec?.sectionName || ''}
 - 목적: ${spec?.purpose || ''}
 - 핵심 메시지: ${spec?.keyMessage || ''}
-- 필수 요소: ${spec?.requiredElements.join(', ') || ''}
 ${spec?.suggestedVisual ? `- 시각화 제안: ${spec.suggestedVisual}` : ''}
 ${expressionConstraint}${roleSchema}${refMatchBlock}${writingStyleReminder}${refHint}
+
+${roleRequired}
+
+## 필수 포함 체크리스트 — 아래 항목을 반드시 bulletPoints 또는 bodyText에 포함하세요
+${requiredChecklist}
+⚠️ 누락 시 재요청됩니다. 모든 항목이 슬라이드 어딘가에 반드시 반영되어야 합니다.
 
 위 표현 방식에 맞춰 **완성된 슬라이드 1개**를 제작하세요. 3개가 아닌 **1개만** 만들어주세요.
 
 ## 필수 사용 필드
 1. **subTitle** (필수): 제목 아래 한 줄 설명
 2. **keyMessage** (필수): 핵심 메시지 강조 박스
-3. **bulletPoints**: 핵심 항목. 각 항목은 "제목: 설명" 형태
+3. **bulletPoints**: 핵심 항목. 각 항목은 "제목: 설명" 형태. 체크리스트의 모든 항목 포함.
 4. **iconHints** (필수): bulletPoints와 1:1 매칭 이모지 배열
 5. **secondaryPoints** (권장): 보조 정보 2~4개
 6. **footnote** (권장): 출처, 기준일, 참고사항
