@@ -1,0 +1,71 @@
+[  116199ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/upload:0
+[  116208ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:3000/api/analyze-doc:0
+[  116283ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/chat:0
+[  261321ms] [ERROR] ./node_modules/pdfjs-dist/legacy/build/pdf.js:10832:20
+Module not found: Can't resolve 'canvas'
+  10830 | class NodeCanvasFactory extends _base_factory.BaseCanvasFactory {
+  10831 |   _createCanvas(width, height) {
+> 10832 |     const Canvas = require("canvas");
+        |                    ^^^^^^^^^^^^^^^^^
+  10833 |     return Canvas.createCanvas(width, height);
+  10834 |   }
+  10835 | }
+
+Import trace:
+  App Route:
+    ./node_modules/pdfjs-dist/legacy/build/pdf.js
+    ./src/lib/document/parser.ts
+    ./src/app/api/upload/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  261648ms] [ERROR] ./node_modules/pdfjs-dist/legacy/build/pdf.js:10832:20
+Module not found: Can't resolve 'canvas'
+  10830 | class NodeCanvasFactory extends _base_factory.BaseCanvasFactory {
+  10831 |   _createCanvas(width, height) {
+> 10832 |     const Canvas = require("canvas");
+        |                    ^^^^^^^^^^^^^^^^^
+  10833 |     return Canvas.createCanvas(width, height);
+  10834 |   }
+  10835 | }
+
+Import trace:
+  App Route:
+    ./node_modules/pdfjs-dist/legacy/build/pdf.js
+    ./src/lib/document/parser.ts
+    ./src/app/api/upload/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  261715ms] [ERROR] ./node_modules/pdfjs-dist/legacy/build/pdf.js:10832:20
+Module not found: Can't resolve 'canvas'
+  10830 | class NodeCanvasFactory extends _base_factory.BaseCanvasFactory {
+  10831 |   _createCanvas(width, height) {
+> 10832 |     const Canvas = require("canvas");
+        |                    ^^^^^^^^^^^^^^^^^
+  10833 |     return Canvas.createCanvas(width, height);
+  10834 |   }
+  10835 | }
+
+Import trace:
+  App Route:
+    ./node_modules/pdfjs-dist/legacy/build/pdf.js
+    ./src/lib/document/parser.ts
+    ./src/app/api/upload/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  262001ms] [ERROR] ./node_modules/pdfjs-dist/legacy/build/pdf.js:10832:20
+Module not found: Can't resolve 'canvas'
+  10830 | class NodeCanvasFactory extends _base_factory.BaseCanvasFactory {
+  10831 |   _createCanvas(width, height) {
+> 10832 |     const Canvas = require("canvas");
+        |                    ^^^^^^^^^^^^^^^^^
+  10833 |     return Canvas.createCanvas(width, height);
+  10834 |   }
+  10835 | }
+
+Import trace:
+  App Route:
+    ./node_modules/pdfjs-dist/legacy/build/pdf.js
+    ./src/lib/document/parser.ts
+    ./src/app/api/upload/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
