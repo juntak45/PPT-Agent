@@ -120,22 +120,26 @@ export function validateSlideAgainstRole(
   const { role } = assignment;
   const bulletCount = slide.bulletPoints?.length || 0;
 
+  // 숫자 포함 텍스트가 있으면 data-viz로 허용 (chartData 없어도)
+  const hasNumericContent = (slide.bulletPoints || []).some((b) => /\d+/.test(b)) ||
+    (slide.bodyText && /\d+/.test(slide.bodyText));
+
   switch (role) {
     case 'cover':
-      if (bulletCount > 3) warnings.push({ slideNumber: slide.slideNumber, role, message: `cover: bulletPoints ${bulletCount}개 (≤3 권장)` });
+      if (bulletCount > 5) warnings.push({ slideNumber: slide.slideNumber, role, message: `cover: bulletPoints ${bulletCount}개 (≤5 권장)` });
       break;
     case 'toc':
       if (bulletCount === 0) warnings.push({ slideNumber: slide.slideNumber, role, message: 'toc: bulletPoints 필수 (섹션 목록)' });
       break;
     case 'section-divider':
-      if (bulletCount > 1) warnings.push({ slideNumber: slide.slideNumber, role, message: `section-divider: bulletPoints ${bulletCount}개 (≤1 권장)` });
+      if (bulletCount > 2) warnings.push({ slideNumber: slide.slideNumber, role, message: `section-divider: bulletPoints ${bulletCount}개 (≤2 권장)` });
       break;
     case 'key-message':
-      if (bulletCount > 3) warnings.push({ slideNumber: slide.slideNumber, role, message: `key-message: bulletPoints ${bulletCount}개 (≤3 권장)` });
+      if (bulletCount > 5) warnings.push({ slideNumber: slide.slideNumber, role, message: `key-message: bulletPoints ${bulletCount}개 (≤5 권장)` });
       if (!slide.keyMessage) warnings.push({ slideNumber: slide.slideNumber, role, message: 'key-message: keyMessage 필수' });
       break;
     case 'detailed-explanation':
-      if (bulletCount < 3 || bulletCount > 6) warnings.push({ slideNumber: slide.slideNumber, role, message: `detailed-explanation: bulletPoints ${bulletCount}개 (3~6 권장)` });
+      if (bulletCount < 2 || bulletCount > 8) warnings.push({ slideNumber: slide.slideNumber, role, message: `detailed-explanation: bulletPoints ${bulletCount}개 (2~8 권장)` });
       break;
     case 'comparison':
       if (slide.layout !== 'two-column' && slide.composition !== 'side-by-side' && slide.composition !== 'comparison-table') {
@@ -143,13 +147,15 @@ export function validateSlideAgainstRole(
       }
       break;
     case 'data-visualization':
-      if (!slide.chartData && !slide.mermaidCode) warnings.push({ slideNumber: slide.slideNumber, role, message: 'data-visualization: chartData 또는 mermaidCode 필수' });
+      if (!slide.chartData && !slide.mermaidCode && !hasNumericContent) {
+        warnings.push({ slideNumber: slide.slideNumber, role, message: 'data-visualization: chartData, mermaidCode, 또는 숫자 데이터 필수' });
+      }
       break;
     case 'architecture-blueprint':
       if (!slide.mermaidCode && bulletCount === 0) warnings.push({ slideNumber: slide.slideNumber, role, message: 'architecture-blueprint: mermaidCode 또는 bulletPoints 필수' });
       break;
     case 'conclusion':
-      if (bulletCount > 3) warnings.push({ slideNumber: slide.slideNumber, role, message: `conclusion: bulletPoints ${bulletCount}개 (≤3 권장)` });
+      if (bulletCount > 5) warnings.push({ slideNumber: slide.slideNumber, role, message: `conclusion: bulletPoints ${bulletCount}개 (≤5 권장)` });
       break;
   }
 

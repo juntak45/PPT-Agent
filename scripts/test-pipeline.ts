@@ -18,8 +18,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { extractStructuredData } from '../src/lib/pipeline/parser';
 import { validateStructuredData } from '../src/lib/pipeline/validator';
-import { runStructuralBenchmark } from '../src/lib/benchmark/scorer';
+import { runStructuralBenchmark, scoreSlideCompleteness } from '../src/lib/benchmark/scorer';
 import { generateStructuralReport } from '../src/lib/benchmark/report';
+import { postProcessSlide, printCorrectionLogs } from '../src/lib/benchmark/postProcessor';
 import type {
   PipelineState,
   StepId,
@@ -284,43 +285,84 @@ async function main() {
     pass('Step 4', `"${selected.label}" (${selected.expressionFamily}) 선택됨`);
   }
 
-  // ─── Step 5: Slide Realization (first slide only) ───
-  log('Step 5', '슬라이드 완성 요청 (슬라이드 1번)...');
+  // ─── Step 5: Slide Realization (ALL slides with post-processing + retry) ───
   state.currentStep = 5;
-  state.currentSlideIndex = 0;
-  const step5Messages: LlmMessage[] = [
-    { role: 'user', content: '슬라이드 1번을 선택된 표현 방식으로 완성해주세요.' },
-  ];
+  const totalSlides = state.finalPlan?.slides.length || 0;
+  const retryCount: Record<number, number> = {};
 
-  const step5Text = await callChat(step5Messages, 5, state);
-  const step5Data = extractStructuredData(step5Text);
+  for (let slideIdx = 0; slideIdx < totalSlides; slideIdx++) {
+    const slideNum = slideIdx + 1;
+    state.currentSlideIndex = slideIdx;
+    log('Step 5', `슬라이드 ${slideNum}/${totalSlides} 완성 요청...`);
 
-  if (!step5Data) {
-    warn('Step 5', '구조화 데이터 추출 실패');
-    warnings++;
-  } else if (step5Data.type !== 'slide_candidates') {
-    warn('Step 5', `예상과 다른 타입: ${step5Data.type}`);
-    warnings++;
-  } else {
-    const sc = step5Data.data as { slideNumber: number; candidates: SlideCandidate[] };
-    if (sc.candidates.length === 1) {
-      pass('Step 5', `단일 슬라이드 완성 — "${sc.candidates[0].slide.title}"`);
-    } else {
-      pass('Step 5', `슬라이드 ${sc.candidates.length}개 생성 (기대: 1개)`);
-      if (sc.candidates.length > 1) { warn('Step 5', '1개만 기대했으나 여러 개 생성됨'); warnings++; }
+    const step5Text = await callChat(
+      [{ role: 'user', content: `슬라이드 ${slideNum}번을 선택된 표현 방식으로 완성해주세요.` }],
+      5,
+      state
+    );
+    const step5Data = extractStructuredData(step5Text);
+
+    if (!step5Data || step5Data.type !== 'slide_candidates') {
+      warn('Step 5', `슬라이드 ${slideNum} 구조화 데이터 추출 실패`);
+      warnings++;
+      continue;
     }
 
-    // Update completed slides
-    if (sc.candidates.length > 0) {
-      const realized = sc.candidates[0].slide;
-      state.completedSlides = state.completedSlides.map((s) =>
-        s.slideNumber === realized.slideNumber ? realized : s
-      );
-      if (state.finalPlan) {
-        state.finalPlan.slides = state.finalPlan.slides.map((s) =>
-          s.slideNumber === realized.slideNumber ? { ...s, approved: realized, status: 'approved' as const } : s
+    const sc = step5Data.data as { slideNumber: number; candidates: SlideCandidate[] };
+    if (sc.candidates.length < 1) { warn('Step 5', `슬라이드 ${slideNum} 후보 없음`); warnings++; continue; }
+
+    let slide = sc.candidates[0].slide;
+    const spec = state.contentSpec?.slideSpecs.find((s) => s.slideNumber === slideNum);
+    const assignment = state.deckDesignPlan?.roleAssignments.find((ra) => ra.slideNumber === slideNum);
+
+    // Post-process
+    if (spec && assignment) {
+      const { corrected, logs } = postProcessSlide(slide, assignment, spec);
+      slide = corrected;
+      if (logs.length > 0) printCorrectionLogs(logs);
+
+      // Coverage check + retry
+      let coverage = scoreSlideCompleteness(spec, slide);
+      let retries = 0;
+      while (coverage.score < 0.9 && retries < 2) {
+        retries++;
+        retryCount[slideNum] = retries;
+        const missingList = coverage.missing.map((m) => `- "${m}"`).join('\n');
+        warn('Step 5', `슬라이드 ${slideNum} 커버리지 ${(coverage.score * 100).toFixed(0)}% — 재시도 ${retries}/2`);
+
+        const retryText = await callChat(
+          [{ role: 'user', content: `슬라이드 ${slideNum}번에서 다음 필수 요소가 누락되었습니다:\n${missingList}\n\n기존 내용은 유지하되, 위 요소를 반드시 bulletPoints 또는 bodyText에 추가해서 다시 완성해주세요.` }],
+          5,
+          state
         );
+        const retryData = extractStructuredData(retryText);
+        if (retryData?.type === 'slide_candidates') {
+          const retrySc = retryData.data as { candidates: SlideCandidate[] };
+          if (retrySc.candidates.length >= 1) {
+            slide = retrySc.candidates[0].slide;
+            const { corrected: c2, logs: l2 } = postProcessSlide(slide, assignment, spec);
+            slide = c2;
+            if (l2.length > 0) printCorrectionLogs(l2);
+            coverage = scoreSlideCompleteness(spec, slide);
+          }
+        }
       }
+
+      if (coverage.score < 0.9 && retries >= 2) {
+        warn('Step 5', `슬라이드 ${slideNum} 2회 재시도 후에도 커버리지 ${(coverage.score * 100).toFixed(0)}% — 현재 결과로 확정`);
+      }
+    }
+
+    pass('Step 5', `슬라이드 ${slideNum} 완성 — "${slide.title}"`);
+
+    // Update state
+    state.completedSlides = state.completedSlides.map((s) =>
+      s.slideNumber === slideNum ? slide : s
+    );
+    if (state.finalPlan) {
+      state.finalPlan.slides = state.finalPlan.slides.map((s) =>
+        s.slideNumber === slideNum ? { ...s, approved: slide, status: 'approved' as const } : s
+      );
     }
   }
 

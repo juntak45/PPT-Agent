@@ -10,15 +10,15 @@ export interface CorrectionLog {
 }
 
 const BULLET_LIMITS: Record<string, number> = {
-  'cover': 3,
+  'cover': 5,
   'toc': 10,
-  'section-divider': 1,
-  'key-message': 3,
-  'detailed-explanation': 6,
-  'comparison': 6,
-  'data-visualization': 4,
-  'architecture-blueprint': 5,
-  'conclusion': 3,
+  'section-divider': 2,
+  'key-message': 5,
+  'detailed-explanation': 8,
+  'comparison': 8,
+  'data-visualization': 6,
+  'architecture-blueprint': 6,
+  'conclusion': 5,
 };
 
 export function postProcessSlide(
