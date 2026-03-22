@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
     const stream = provider.streamChat({
       messages,
       systemPrompt,
+      stepId,
     });
 
     return new Response(stream, {

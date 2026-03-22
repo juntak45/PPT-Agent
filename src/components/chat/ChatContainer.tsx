@@ -269,8 +269,8 @@ export default function ChatContainer() {
                 if (coverage.score < 0.9 && retries < 2) {
                   retryCountRef.current[slideNum] = retries + 1;
                   setProcessingStatus(`슬라이드 ${slideNum}번 커버리지 ${(coverage.score * 100).toFixed(0)}% — 누락 요소 보완 재시도 (${retries + 1}/2)...`);
-                  const missingList = coverage.missing.map((m) => `- "${m}"`).join('\n');
-                  const retryMsg = `슬라이드 ${slideNum}번에서 다음 필수 요소가 누락되었습니다:\n${missingList}\n\n기존 슬라이드 내용은 유지하되, 위 요소를 반드시 bulletPoints 또는 bodyText에 추가해서 다시 완성해주세요.`;
+                  const missingList = coverage.missing.map((m) => `- "${m}" — 구체적 수치나 사례와 함께 포함하세요`).join('\n');
+                  const retryMsg = `슬라이드 ${slideNum}번에서 다음 필수 요소가 누락되었습니다:\n${missingList}\n\n기존 슬라이드 내용은 유지하되, 위 요소를 반드시 bulletPoints에 "항목명: 구체적 설명(수치 포함)" 형태로 추가해서 다시 완성해주세요. 추상적 표현 금지.`;
                   const retryText = await sendMessage(retryMsg, 5, pipelineState);
                   await processResponse(retryText, 5, pipelineState, false);
                   return;

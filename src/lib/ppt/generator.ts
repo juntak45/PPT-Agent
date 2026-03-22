@@ -677,47 +677,57 @@ function renderHubSpoke(
 ) {
   const items = points.length > 0 ? points.slice(0, 6) : ['A', 'B', 'C', 'D'];
 
-  // Center hub
-  const hubW = 2.2;
-  const hubH = 0.8;
-  const cx = body.x + body.w / 2 - hubW / 2;
-  const cy = body.y + body.h / 2 - hubH / 2;
+  // Center hub — larger circle
+  const hubSize = 1.6;
+  const centerX = body.x + body.w / 2;
+  const centerY = body.y + body.h / 2;
 
-  slide.addShape('roundRect', {
-    x: cx, y: cy, w: hubW, h: hubH,
+  slide.addShape('ellipse', {
+    x: centerX - hubSize / 2, y: centerY - hubSize / 2, w: hubSize, h: hubSize,
     fill: { color: accent },
     line: { width: 0 },
-    rectRadius: 0.1,
   });
-  slide.addText('핵심', {
-    x: cx, y: cy, w: hubW, h: hubH,
-    fontSize: 14, fontFace: FONT_FAMILY, bold: true,
+
+  // Use first item as hub label, or generic
+  const hubLabel = items.length > 0 ? items[0].split(/[:：]/)[0].trim().slice(0, 10) : '핵심';
+  slide.addText(hubLabel, {
+    x: centerX - hubSize / 2, y: centerY - hubSize / 2, w: hubSize, h: hubSize,
+    fontSize: 13, fontFace: FONT_FAMILY, bold: true,
     align: 'center', valign: 'middle',
     color: 'ffffff',
   });
 
-  // Spokes
-  const radiusX = body.w * 0.35;
+  // Spokes (skip first item if used as hub)
+  const spokeItems = items.length > 1 ? items.slice(1) : items;
+  const radiusX = body.w * 0.36;
   const radiusY = body.h * 0.38;
-  const spokeW = 2.5;
-  const spokeH = 0.65;
+  const spokeW = 2.2;
+  const spokeH = 0.6;
 
-  items.forEach((item, i) => {
-    const angle = (2 * Math.PI * i) / items.length - Math.PI / 2;
-    const sx = body.x + body.w / 2 + Math.cos(angle) * radiusX - spokeW / 2;
-    const sy = body.y + body.h / 2 + Math.sin(angle) * radiusY - spokeH / 2;
-    const icon = icons[i];
+  spokeItems.forEach((item, i) => {
+    const angle = (2 * Math.PI * i) / spokeItems.length - Math.PI / 2;
+    const sx = centerX + Math.cos(angle) * radiusX;
+    const sy = centerY + Math.sin(angle) * radiusY;
+    const icon = icons[i + 1] || icons[i];
 
+    // Connection line from hub to spoke
+    slide.addShape('line', {
+      x: centerX, y: centerY,
+      w: sx - centerX, h: sy - centerY,
+      line: { color: `${accent}40`, width: 1.5, dashType: 'solid' },
+    });
+
+    // Spoke card
     slide.addShape('roundRect', {
-      x: sx, y: sy, w: spokeW, h: spokeH,
+      x: sx - spokeW / 2, y: sy - spokeH / 2, w: spokeW, h: spokeH,
       fill: { color: light },
-      line: { color: `${accent}50`, width: 0.5 },
+      line: { color: `${accent}40`, width: 0.8 },
       rectRadius: 0.08,
     });
 
     const displayText = icon ? `${icon} ${item}` : item;
-    slide.addText(displayText.length > 30 ? displayText.slice(0, 30) + '…' : displayText, {
-      x: sx, y: sy, w: spokeW, h: spokeH,
+    slide.addText(displayText.length > 35 ? displayText.slice(0, 35) + '…' : displayText, {
+      x: sx - spokeW / 2, y: sy - spokeH / 2, w: spokeW, h: spokeH,
       fontSize: 10, fontFace: FONT_FAMILY,
       align: 'center', valign: 'middle',
       color: titleColor, wrap: true,
@@ -801,54 +811,75 @@ function renderTimeline(
   accent: string, light: string, bodyColor: string, icons: string[],
 ) {
   const items = points.length > 0 ? points.slice(0, 5) : ['Phase 1', 'Phase 2', 'Phase 3'];
-  const lineY = body.y + body.h * 0.4;
+  const lineY = body.y + body.h * 0.35;
 
-  // Timeline line
+  // Timeline line — thicker, more visible
   slide.addShape('rect', {
-    x: body.x + 0.3, y: lineY, w: body.w - 0.6, h: 0.03,
-    fill: { color: `${accent}60` },
+    x: body.x + 0.5, y: lineY, w: body.w - 1.0, h: 0.04,
+    fill: { color: accent },
     line: { width: 0 },
   });
 
-  const spacing = (body.w - 0.6) / (items.length - 1 || 1);
-  const dotSize = 0.25;
-  const labelW = Math.min(spacing * 0.9, 2.0);
+  const spacing = (body.w - 1.0) / (items.length - 1 || 1);
+  const dotSize = 0.35;
+  const labelW = Math.min(spacing * 0.88, 2.2);
 
   items.forEach((item, i) => {
-    const x = body.x + 0.3 + i * spacing;
+    const x = body.x + 0.5 + i * spacing;
     const icon = icons[i];
 
-    // Dot
+    // Milestone dot — larger, accent filled
     slide.addShape('ellipse', {
-      x: x - dotSize / 2, y: lineY - dotSize / 2 + 0.015,
+      x: x - dotSize / 2, y: lineY - dotSize / 2 + 0.02,
       w: dotSize, h: dotSize,
       fill: { color: accent },
-      line: { width: 0 },
+      line: { color: 'ffffff', width: 2 },
     });
 
     // Icon/number in dot
     slide.addText(icon || String(i + 1), {
-      x: x - dotSize / 2, y: lineY - dotSize / 2 + 0.015,
+      x: x - dotSize / 2, y: lineY - dotSize / 2 + 0.02,
       w: dotSize, h: dotSize,
-      fontSize: icon ? 10 : 8, align: 'center', valign: 'middle',
-      color: 'ffffff',
+      fontSize: icon ? 12 : 10, align: 'center', valign: 'middle',
+      color: 'ffffff', bold: true,
     });
 
-    // Label
+    // Label card — split title and description
+    const parts = item.split(/[:：](.+)/);
+    const hasTitle = parts.length > 1 && parts[0].length < 20;
+    const cardH = hasTitle ? 0.9 : 0.7;
+
     slide.addShape('roundRect', {
-      x: x - labelW / 2, y: lineY + 0.3,
-      w: labelW, h: 0.7,
+      x: x - labelW / 2, y: lineY + 0.35,
+      w: labelW, h: cardH,
       fill: { color: light },
-      line: { width: 0 },
+      line: { color: `${accent}30`, width: 0.5 },
       rectRadius: 0.06,
     });
-    slide.addText(item.length > 30 ? item.slice(0, 30) + '…' : item, {
-      x: x - labelW / 2, y: lineY + 0.3,
-      w: labelW, h: 0.7,
-      fontSize: 10, fontFace: FONT_FAMILY,
-      align: 'center', valign: 'middle',
-      color: bodyColor, wrap: true,
-    });
+
+    if (hasTitle) {
+      slide.addText(parts[0].trim(), {
+        x: x - labelW / 2 + 0.05, y: lineY + 0.38,
+        w: labelW - 0.1, h: 0.3,
+        fontSize: 11, fontFace: FONT_FAMILY, bold: true,
+        align: 'center', valign: 'middle', color: accent,
+      });
+      slide.addText(parts[1].trim().slice(0, 40), {
+        x: x - labelW / 2 + 0.05, y: lineY + 0.65,
+        w: labelW - 0.1, h: cardH - 0.35,
+        fontSize: 9, fontFace: FONT_FAMILY,
+        align: 'center', valign: 'top',
+        color: bodyColor, wrap: true,
+      });
+    } else {
+      slide.addText(item.length > 35 ? item.slice(0, 35) + '…' : item, {
+        x: x - labelW / 2, y: lineY + 0.35,
+        w: labelW, h: cardH,
+        fontSize: 10, fontFace: FONT_FAMILY,
+        align: 'center', valign: 'middle',
+        color: bodyColor, wrap: true,
+      });
+    }
   });
 }
 
@@ -913,25 +944,32 @@ function renderComparisonTable(
   const mid = Math.ceil(points.length / 2);
   const rows: PptxGenJS.TableRow[] = [];
 
+  // Infer header labels from first items
+  const headerA = points[0]?.split(/[:：]/)[0]?.trim().slice(0, 15) || 'AS-IS';
+  const headerB = points[mid]?.split(/[:：]/)[0]?.trim().slice(0, 15) || 'TO-BE';
+
   // Header row
   rows.push([
-    { text: '항목 A', options: { fill: { color: accent }, color: 'ffffff', fontSize: 12, fontFace: FONT_FAMILY, bold: true, align: 'center', valign: 'middle' } },
-    { text: '항목 B', options: { fill: { color: accent }, color: 'ffffff', fontSize: 12, fontFace: FONT_FAMILY, bold: true, align: 'center', valign: 'middle' } },
+    { text: headerA, options: { fill: { color: accent }, color: 'ffffff', fontSize: 12, fontFace: FONT_FAMILY, bold: true, align: 'center', valign: 'middle', margin: [4, 8, 4, 8] } },
+    { text: headerB, options: { fill: { color: accent }, color: 'ffffff', fontSize: 12, fontFace: FONT_FAMILY, bold: true, align: 'center', valign: 'middle', margin: [4, 8, 4, 8] } },
   ]);
 
-  // Data rows
+  // Data rows with alternating colors
   for (let i = 0; i < mid; i++) {
+    const isEven = i % 2 === 0;
+    const rowBg = isEven ? `${accent}08` : `${accent}03`;
     rows.push([
-      { text: points[i] || '', options: { fontSize: 11, fontFace: FONT_FAMILY, color: bodyColor, valign: 'middle' } },
-      { text: points[mid + i] || '', options: { fontSize: 11, fontFace: FONT_FAMILY, color: bodyColor, valign: 'middle' } },
+      { text: points[i] || '', options: { fontSize: 11, fontFace: FONT_FAMILY, color: bodyColor, valign: 'middle', fill: { color: rowBg }, margin: [4, 8, 4, 8] } },
+      { text: points[mid + i] || '', options: { fontSize: 11, fontFace: FONT_FAMILY, color: bodyColor, valign: 'middle', fill: { color: rowBg }, margin: [4, 8, 4, 8] } },
     ]);
   }
 
+  const rowH = Math.min(body.h / (mid + 1), 0.7);
   slide.addTable(rows, {
-    x: body.x, y: body.y, w: body.w,
-    colW: [body.w / 2, body.w / 2],
-    border: { color: `${accent}30`, pt: 0.5 },
-    rowH: Math.min(body.h / (mid + 1), 0.7),
+    x: body.x + 0.2, y: body.y, w: body.w - 0.4,
+    colW: [(body.w - 0.4) / 2, (body.w - 0.4) / 2],
+    border: { color: `${accent}25`, pt: 0.5 },
+    rowH,
   });
 }
 

@@ -45,6 +45,7 @@ const PROVIDER = args.includes('--provider') ? args[args.indexOf('--provider') +
 const BASE_URL = args.includes('--base-url') ? args[args.indexOf('--base-url') + 1] : 'http://localhost:3000';
 const SKIP_PPT = args.includes('--skip-ppt');
 const SAVE = args.includes('--save');
+const REPEAT = args.includes('--repeat') ? parseInt(args[args.indexOf('--repeat') + 1] || '1', 10) : 1;
 
 // ─── Helpers ───
 
@@ -434,10 +435,54 @@ async function main() {
   console.log(colors.cyan('═══════════════════════════════════════════'));
   console.log('');
 
-  process.exit(errors > 0 ? 1 : 0);
+  const benchmarkScore = state.finalPlan ? runStructuralBenchmark(state.finalPlan).overallScore : 0;
+  return { errors, warnings, score: benchmarkScore };
 }
 
-main().catch((err) => {
+async function runWithRepeat() {
+  if (REPEAT <= 1) {
+    const result = await main();
+    process.exit(result.errors > 0 ? 1 : 0);
+  }
+
+  const scores: number[] = [];
+  let totalErrors = 0;
+
+  for (let i = 0; i < REPEAT; i++) {
+    console.log(colors.cyan(`\n━━━ Run ${i + 1}/${REPEAT} ━━━\n`));
+    try {
+      const result = await main();
+      scores.push(result.score);
+      totalErrors += result.errors;
+    } catch (err) {
+      console.error(colors.red(`Run ${i + 1} 실패: ${err}`));
+      scores.push(0);
+      totalErrors++;
+    }
+  }
+
+  console.log(colors.cyan('\n═══════════════════════════════════════════'));
+  console.log(colors.cyan(`  ${REPEAT}회 반복 결과`));
+  console.log(colors.cyan('═══════════════════════════════════════════'));
+  const min = Math.min(...scores);
+  const max = Math.max(...scores);
+  const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+  console.log(`  최저: ${(min * 100).toFixed(1)}%`);
+  console.log(`  최고: ${(max * 100).toFixed(1)}%`);
+  console.log(`  평균: ${(avg * 100).toFixed(1)}%`);
+  scores.forEach((s, i) => console.log(`  Run ${i + 1}: ${(s * 100).toFixed(1)}%`));
+
+  if (min < 0.9) {
+    console.log(colors.red(`\n  ⚠ 최저 점수 ${(min * 100).toFixed(1)}%가 90% 미만입니다!`));
+  } else {
+    console.log(colors.green(`\n  ✓ 모든 실행이 90%+ 입니다.`));
+  }
+  console.log('');
+
+  process.exit(totalErrors > 0 ? 1 : 0);
+}
+
+runWithRepeat().catch((err) => {
   console.error(colors.red(`\n치명적 오류: ${err.message || err}`));
   process.exit(1);
 });

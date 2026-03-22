@@ -403,6 +403,20 @@ title-slide, title-content, two-column, image-text, chart, diagram, section-divi
       };
       const roleRequired = assignment ? (roleRequiredFields[assignment.role] || '') : '';
 
+      // Extract relevant document data for this specific slide
+      let slideDocContext = '';
+      if (spec && state.documentAnalysis) {
+        const docParts: string[] = [];
+        if (spec.customerNeed) docParts.push(`- 고객 요구: ${spec.customerNeed}`);
+        if (spec.decisionDriver) docParts.push(`- 의사결정 포인트: ${spec.decisionDriver}`);
+        if (state.documentAnalysis.kpis?.length) docParts.push(`- KPI: ${state.documentAnalysis.kpis.slice(0, 3).join(', ')}`);
+        if (state.documentAnalysis.budget) docParts.push(`- 예산: ${state.documentAnalysis.budget}`);
+        if (state.documentAnalysis.timeline) docParts.push(`- 일정: ${state.documentAnalysis.timeline}`);
+        if (docParts.length > 0) {
+          slideDocContext = `\n\n## 이 슬라이드와 관련된 원본 문서 데이터\n${docParts.join('\n')}`;
+        }
+      }
+
       return `${BASE_INSTRUCTION}
 ${contextBlock}${refBlock}
 
@@ -411,13 +425,18 @@ ${contextBlock}${refBlock}
 - 목적: ${spec?.purpose || ''}
 - 핵심 메시지: ${spec?.keyMessage || ''}
 ${spec?.suggestedVisual ? `- 시각화 제안: ${spec.suggestedVisual}` : ''}
-${expressionConstraint}${roleSchema}${refMatchBlock}${writingStyleReminder}${refHint}
+${expressionConstraint}${roleSchema}${refMatchBlock}${slideDocContext}${writingStyleReminder}${refHint}
 
 ${roleRequired}
 
+## 콘텐츠 품질 기준 — 엔터프라이즈급 제안서 수준
+- **추상적 표현 금지**: "효율화", "개선" 같은 모호한 표현 대신 "처리 시간 40% 단축", "연간 5억원 절감" 같은 정량적 표현 사용
+- **구체적 수치와 근거**: 각 bulletPoint에 가능한 한 숫자, 비율, 금액, 기간을 포함
+- **실제 제안서 수준의 깊이**: 고객이 읽고 바로 의사결정할 수 있는 수준의 구체성
+
 ## 필수 포함 체크리스트 — 아래 항목을 반드시 bulletPoints 또는 bodyText에 포함하세요
 ${requiredChecklist}
-⚠️ 누락 시 재요청됩니다. 모든 항목이 슬라이드 어딘가에 반드시 반영되어야 합니다.
+⚠️ 누락 시 재요청됩니다. 각 항목에 구체적 수치 또는 사례를 포함하세요.
 
 위 표현 방식에 맞춰 **완성된 슬라이드 1개**를 제작하세요. 3개가 아닌 **1개만** 만들어주세요.
 

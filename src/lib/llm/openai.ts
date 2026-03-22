@@ -11,7 +11,8 @@ export class OpenAIProvider implements LlmProvider {
   }
 
   streamChat(options: StreamChatOptions): ReadableStream<Uint8Array> {
-    const { messages, systemPrompt, model, temperature } = options;
+    const { messages, systemPrompt, model, temperature, stepId } = options;
+    const effectiveTemp = temperature ?? (stepId === 5 ? 0.5 : 0.7);
     const encoder = new TextEncoder();
 
     const openaiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
@@ -35,7 +36,7 @@ export class OpenAIProvider implements LlmProvider {
           const stream = await this.client.chat.completions.create({
             model: model || OPENAI_MODEL,
             messages: openaiMessages,
-            temperature: temperature ?? 0.7,
+            temperature: effectiveTemp,
             max_tokens: 8192,
             stream: true,
           });

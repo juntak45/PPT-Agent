@@ -11,7 +11,9 @@ export class ClaudeProvider implements LlmProvider {
   }
 
   streamChat(options: StreamChatOptions): ReadableStream<Uint8Array> {
-    const { messages, systemPrompt, model, temperature } = options;
+    const { messages, systemPrompt, model, temperature, stepId } = options;
+    // Step 5 (realization): lower temperature for consistency
+    const effectiveTemp = temperature ?? (stepId === 5 ? 0.5 : 0.7);
     const encoder = new TextEncoder();
 
     const anthropicMessages = messages
@@ -29,7 +31,7 @@ export class ClaudeProvider implements LlmProvider {
             max_tokens: 8192,
             system: systemPrompt,
             messages: anthropicMessages,
-            temperature: temperature ?? 0.7,
+            temperature: effectiveTemp,
           });
 
           for await (const event of stream) {
