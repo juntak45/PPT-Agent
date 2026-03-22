@@ -78,7 +78,17 @@ export async function generatePptx(plan: FinalDeckPlan): Promise<Buffer> {
       continue;
     }
     const slide = pptx.addSlide();
-    await applySlideContent(slide, slideContent, theme);
+    try {
+      await applySlideContent(slide, slideContent, theme);
+    } catch (err) {
+      console.error(`[PPT] 슬라이드 ${slideContent.slideNumber} 렌더링 에러:`, err);
+      // Fallback: 제목만 표시
+      slide.addText(slideContent.title || `슬라이드 ${slideContent.slideNumber}`, {
+        x: 0.5, y: 0.3, w: 12.0, h: 0.8,
+        fontSize: 24, fontFace: FONT_FAMILY, bold: true,
+        color: hexStrip(theme.titleColor),
+      });
+    }
   }
 
   const output = await pptx.write({ outputType: 'nodebuffer' });

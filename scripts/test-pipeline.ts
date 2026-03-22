@@ -295,17 +295,27 @@ async function main() {
     state.currentSlideIndex = slideIdx;
     log('Step 5', `슬라이드 ${slideNum}/${totalSlides} 완성 요청...`);
 
-    const step5Text = await callChat(
+    let step5Text = await callChat(
       [{ role: 'user', content: `슬라이드 ${slideNum}번을 선택된 표현 방식으로 완성해주세요.` }],
       5,
       state
     );
-    const step5Data = extractStructuredData(step5Text);
+    let step5Data = extractStructuredData(step5Text);
 
+    // Retry once if structured data extraction failed
     if (!step5Data || step5Data.type !== 'slide_candidates') {
-      warn('Step 5', `슬라이드 ${slideNum} 구조화 데이터 추출 실패`);
-      warnings++;
-      continue;
+      warn('Step 5', `슬라이드 ${slideNum} 구조화 데이터 추출 실패 — 재시도`);
+      step5Text = await callChat(
+        [{ role: 'user', content: `슬라이드 ${slideNum}번을 다시 완성해주세요. 반드시 마지막에 <!--STRUCTURED_DATA JSON 블록을 포함해서 응답하세요.` }],
+        5,
+        state
+      );
+      step5Data = extractStructuredData(step5Text);
+      if (!step5Data || step5Data.type !== 'slide_candidates') {
+        warn('Step 5', `슬라이드 ${slideNum} 재시도 후에도 실패 — baseline 유지`);
+        warnings++;
+        continue;
+      }
     }
 
     const sc = step5Data.data as { slideNumber: number; candidates: SlideCandidate[] };
@@ -376,7 +386,8 @@ async function main() {
         body: JSON.stringify(state.finalPlan),
       });
       if (!pptRes.ok) {
-        fail('PPT', `생성 실패: ${pptRes.status}`);
+        const errBody = await pptRes.text();
+        fail('PPT', `생성 실패: ${pptRes.status} — ${errBody}`);
         errors++;
       } else {
         const buffer = await pptRes.arrayBuffer();

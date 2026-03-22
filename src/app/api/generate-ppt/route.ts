@@ -21,7 +21,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error('PPT generation error:', error);
     const message = error instanceof Error ? error.message : 'PPT 생성 중 오류 발생';
-    return Response.json({ error: message }, { status: 500 });
+    const stack = error instanceof Error ? error.stack : undefined;
+    return Response.json({ error: message, stack }, { status: 500 });
   }
 }
